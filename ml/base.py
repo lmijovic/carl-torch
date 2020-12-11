@@ -54,7 +54,7 @@ class Estimator(object):
     def evaluate(self, *args, **kwargs):
         raise NotImplementedError
 
-    def save(self, filename, x, metaData, save_model=False, export_model=False):
+    def save(self, filename, x, save_model=False, export_model=False):
 
         """
         Saves the trained model to four files: a JSON file with the settings, a pickled pyTorch state dict
@@ -93,8 +93,6 @@ class Estimator(object):
             logger.debug("Saving input scaling information to %s_x_means.npy and %s_x_stds.npy", filename, filename)
             np.save(filename + "_x_means.npy", self.x_scaling_means)
             np.save(filename + "_x_stds.npy", self.x_scaling_stds)
-            np.save(filename + "_x_mins.npy", self.x_scaling_mins)
-            np.save(filename + "_x_maxs.npy", self.x_scaling_maxs)
 
         # Save state dict
         logger.debug("Saving state dictionary to %s_state_dict.pt", filename)
@@ -153,21 +151,22 @@ class Estimator(object):
             ##        ONNX
             ####################################
             # Define a new custom meta data map
-            #CustomMap_new = {"Var1" : 200.0, 
-            #                 "Var2" : 5.0,
-            #                 "Var3" : 1000.0,
-            #                 "Var4" : 400.0,
-            #                 "Var5" : 6.0,
-            #             }
+            CustomMap_new = {"Var1" : 200.0, 
+                             "Var2" : 5.0,
+                             "Var3" : 1000.0,
+                             "Var4" : 400.0,
+                             "Var5" : 6.0,
+                         }
+            
             # Load model
             model = onnx.load(filename+".onnx")
             # Get Meta Data
-            for index,(cust_key,cust_var) in enumerate(metaData.items()): 
+            for index,(cust_key,cust_var) in enumerate(CustomMap_new.items()): 
                 meta = model.metadata_props.add()
                 meta.key = cust_key
                 meta.value = str(cust_var)
                 # Check value
-                logger.info(" New Meta data: %s ",model.metadata_props[index])
+                print("New Meta data:  {}".format(model.metadata_props[index]))
 
                 
             # Save model
@@ -181,7 +180,7 @@ class Estimator(object):
             metaData = ort_session.get_modelmeta()
             # Print Metadata
             CustomMap = metaData.custom_metadata_map
-            logger.info(" Custom Meta-Data Map: %s",CustomMap)
+            print("Custom Meta-Data Map: {}".format(CustomMap))
             # Need to close the ort session for comleteness (C-style)
             ####################################
             ###################################
@@ -190,15 +189,23 @@ class Estimator(object):
         # Tar model if training is done on GPU
         if torch.cuda.is_available():
             tar = tarfile.open("models_out.tar.gz", "w:gz")
-            for name in [filename+".onnx", filename + "_x_stds.npy", filename + "_x_means.npy",  filename + "_x_mins.npy",  filename + "_x_maxs.npy", filename + "_settings.json",  filename + "_state_dict.pt"]:
+            for name in [filename+".onnx", filename + "_x_stds.npy", filename + "_x_means.npy", filename + "_settings.json",  filename + "_state_dict.pt"]:
                 tar.add(name)
             tar.close()
 
     def makeConfusion(self, filename, x,y):
+        print("x ", x)
+        print("len x ", len(x))
         X = torch.from_numpy(x).type(torch.FloatTensor)
+        print("X ", X)
         y_pred = self.model(X)
-        logger.info("acc %.2f",accuracy_score(y_pred,y))
-        logger.info(confusion_matrix(y, y_pred))
+        #y_pred = self.model.predict(X)
+        print("y", y)
+        print("len(y)", len(y))
+        print("y pred", y_pred)
+        print("len y pred", len(y_pred))
+        print("acc ",accuracy_score(y_pred,y))
+        print("conf ",confusion_matrix(y, y_pred))
 
     def load(self, filename):
 
@@ -225,25 +232,21 @@ class Estimator(object):
         # Load scaling
         try:
             self.x_scaling_means = np.load(filename + "_x_means.npy")
-            self.x_scaling_stds =  np.load(filename + "_x_stds.npy")
-            self.x_scaling_mins =  np.load(filename + "_x_mins.npy")
-            self.x_scaling_maxs =  np.load(filename + "_x_maxs.npy")
+            self.x_scaling_stds = np.load(filename + "_x_stds.npy")
             logger.debug(
-                "  Found input scaling information: means %s, stds %s, mins %s, maxs %s  ", self.x_scaling_means, self.x_scaling_stds, self.x_scaling_mins, self.x_scaling_maxs
+                "  Found input scaling information: means %s, stds %s", self.x_scaling_means, self.x_scaling_stds
             )
         except FileNotFoundError:
             logger.warning("Scaling information not found in %s", filename)
             self.x_scaling_means = None
             self.x_scaling_stds = None
-            self.x_scaling_mins = None
-            self.x_scaling_maxs = None
 
         # Load state dict
         logger.debug("Loading state dictionary from %s_state_dict.pt", filename)
         self.model.load_state_dict(torch.load(filename + "_state_dict.pt", map_location="cpu"))
 
     def initialize_input_transform(self, x, transform=True, overwrite=True):
-        if self.x_scaling_stds is not None and self.x_scaling_means is not None and self.x_scaling_mins is not None and self.x_scaling_maxs is not None and not overwrite:
+        if self.x_scaling_stds is not None and self.x_scaling_means is not None and not overwrite:
             logger.info(
                 "Input rescaling already defined. To overwrite, call initialize_input_transform(x, overwrite=True)."
             )
@@ -251,20 +254,16 @@ class Estimator(object):
             logger.info("Setting up input rescaling")
             self.x_scaling_means = np.mean(x, axis=0)
             self.x_scaling_stds = np.maximum(np.std(x, axis=0), 1.0e-6)
-            self.x_scaling_mins = np.min(x, axis=0)
-            self.x_scaling_maxs = np.max(x, axis=0)
         else:
             logger.info("Disabling input rescaling")
             n_parameters = x.shape[0]
 
             self.x_scaling_means = np.zeros(n_parameters)
             self.x_scaling_stds = np.ones(n_parameters)
-            self.x_scaling_mins = np.zeros(n_parameters)
-            self.x_scaling_maxs = np.ones(n_parameters)
 
     def _transform_inputs(self, x, scaling = "minmax"):
+        print("=================== LM ====================== ",type(x))
         if scaling == "standard":    
-            print("doing standard")
             if self.x_scaling_means is not None and self.x_scaling_stds is not None:
                 if isinstance(x, torch.Tensor):
                     x_scaled = x - torch.tensor(self.x_scaling_means, dtype=x.dtype, device=x.device)
@@ -275,16 +274,7 @@ class Estimator(object):
             else:
                 x_scaled = x
         else:
-            print("doing min max")
-            if self.x_scaling_mins is not None and self.x_scaling_maxs is not None:
-                if isinstance(x, torch.Tensor):
-                    x_scaled = (x-torch.tensor(self.x_scaling_mins, dtype=x.dtype, device=x.device))
-                    x_scaled = x_scaled/(torch.tensor(self.x_scaling_maxs, dtype=x.dtype, device=x.device) - torch.tensor(self.x_scaling_mins, dtype=x.dtype, device=x.device))
-                else:
-                    x_scaled = (x - self.x_scaling_mins)
-                    x_scaled = x_scaled/(self.x_scaling_maxs - self.x_scaling_mins)
-            else:
-                x_scaled = x
+            x_scaled = (x-np.min(x,axis=0))/(np.max(x,axis=0)-np.min(x,axis=0))
         return x_scaled
 
     def _wrap_settings(self):

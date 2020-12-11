@@ -16,6 +16,8 @@ def load_result_lm(
     print(np.where(np.isnan(weights)))
     X0 = load_and_check(x0, memmap_files_larger_than_gb=1.0)
     X1 = load_and_check(x1, memmap_files_larger_than_gb=1.0)
+    #print('ewights',weights)
+    #exit(0)
     weights = weights / weights.sum() * len(X1)
     draw_ROC(X0, X1, weights, label="roc",legend="",do="",n=plotname,plot=True)
 

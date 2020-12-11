@@ -6,6 +6,7 @@ import os
 import stat
 import numpy as np
 import uproot
+import uproot4
 import pandas as pd
 import torch
 from torch.nn import functional as F
@@ -20,10 +21,10 @@ def load(f = None, events = None, jets = None, leps = None, n = 0, t = None, do 
     if f is None:
         return None
     tree = uproot.open(f)[t]
-    if int(n) > 0: # if n > 0 n is the number of entries to do training on 
-        df    = tree.pandas.df(events, entrystop = int(n))
-        jetdf = tree.pandas.df(jets, entrystop = int(n))
-        lepdf = tree.pandas.df(leps, entrystop = int(n))
+    if n > 0: # if n > 0 n is the number of entries to do training on 
+        df    = tree.pandas.df(events, entrystop = n)
+        jetdf = tree.pandas.df(jets, entrystop = n)
+        lepdf = tree.pandas.df(leps, entrystop = n)
     else: # else do training on the full sample
         df    = tree.pandas.df(events)
         jetdf = tree.pandas.df(jets)
@@ -35,7 +36,7 @@ def load(f = None, events = None, jets = None, leps = None, n = 0, t = None, do 
         dfl1 = lepdf.xs(0, level='subentry')
         dfl2 = lepdf.xs(1, level='subentry')
         final = df.assign(Jet1_Pt = dfj1['Jet_Pt'], Jet1_Mass=dfj1['Jet_Mass'], 
-                          Jet2_Pt = dfj2['Jet_Pt'], Jet2_Mass=dfj2['Jet_Mass'], 
+                          Jet2_Pt = dfj2['Jet_Pt'], Jet2_Mass=dfj2['Jet_Mass'],                       
                           Lep1_Pt = dfl1['Lepton_Pt'],
                           Lep2_Pt = dfl2['Lepton_Pt']).fillna(0.0)   
     if do == "SingleLepP" or do == "SingleLepM":
@@ -66,7 +67,6 @@ def load(f = None, events = None, jets = None, leps = None, n = 0, t = None, do 
         labels.append('Lepton '+str(j)+' $\mathrm{p_{T}}$ [GeV]')
 
     return final, labels
-
 
 def create_missing_folders(folders):
     if folders is None:

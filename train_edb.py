@@ -13,7 +13,7 @@ from ml import RatioEstimator
 from ml import Loader_edb
 
 #
-from variables_edb import get_variable_names
+from variables import get_variable_names
 from utils_edb import preprocess_inputs
 
 def get_ctorch_samples(p_data_x0,p_data_x1,p_path="",clean_outliers=True,p_store=True):
@@ -73,8 +73,8 @@ def get_ctorch_samples(p_data_x0,p_data_x1,p_path="",clean_outliers=True,p_store
 #-----------------------------------------------------------------------------
 # main 
 #TODO Matt: set input file name here
-infile_old="old.csv" # reference
-infile_new="new_merge.csv" # to reweight
+infile_old="ref.csv" # reference
+infile_new="to_weight.csv" # to reweight
 #TODO Matt: set to True or False depending on your sample
 is_eeyy = True
 # TODO Matt: set where outputs go (make sure these dirs exist)

@@ -10,11 +10,12 @@ def preprocess_inputs(df0_in,df1_in,cleaning_split=0.05,random_seed=42):
     # to your tain/val split, so that each of train and val
     # is likely to satisfy requirements individually
 
-    # normalize weights to 1 in each sample:
-    weight_sum_new = df0_in['weight'].sum()
-    weight_sum_old = df1_in['weight'].sum()
-    df0_in['weight']=df0_in['weight']*df0_in.shape[0]/weight_sum_new
-    df1_in['weight']=df1_in['weight']*df1_in.shape[0]/weight_sum_old
+    # if weights exits, normalize weights to 1 in each sample:
+    if 'weight' in df0_in:
+        weight_sum_new = df0_in['weight'].sum()
+        weight_sum_old = df1_in['weight'].sum()
+        df0_in['weight']=df0_in['weight']*df0_in.shape[0]/weight_sum_new
+        df1_in['weight']=df1_in['weight']*df1_in.shape[0]/weight_sum_old
 
 
     # * no NaN-s

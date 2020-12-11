@@ -1,4 +1,91 @@
 CARL-TORCH
+
+# About 
+
+Fork of CARL-TORCH adapting it for the studies of the Edinburgh group. Please see below for original author's doc. 
+
+## Installation notes
+
+```
+
+conda create -n myenv ctorch python=3.7
+
+# requirements
+ conda install numpy
+ conda install scipy
+ conda install scikit-learn
+ conda install torch
+ conda install -c conda-forge uproot
+ conda install matplotlib
+ conda install pandas
+ conda install seaborn
+ conda install -c conda-forge uproot4
+ conda install -c conda-forge onnx
+ pip install --upgrade pip
+ pip install torch
+ pip install onnxruntime
+
+
+
+# to use: 
+git clone https://github.com/lmijovic/carl-torch.git
+
+
+```
+
+## Test Run
+```
+# clean any old results: 
+rm -fr data/ model/ plots/
+
+# set samples to use
+ln -s tests_edb/inputs/sm.csv ref.csv
+ln -s tests_edb/inputs/bsm.csv to_weight.csv
+
+# set variables to use 
+ln -s variables_edb/variables_test.py variables.py
+
+# train
+python train_edb.py 
+
+# get CARL roc curves 
+python evaluate_edb.py
+
+
+```
+
+## Changes wrt original code
+
+## How to adapt code for a new sample
+
+say you have a signal and background .csv (both with same columns) and want to run over them 
+
+1) create list of your variables in 
+```
+variables_edb/
+
+```
+Note that weight column is conventionally called 'weight' ; please follow this convention to account for weights properly
+
+
+Using test run variables as template, this is simply : 
+```
+cd variables_edb/
+cp variables_test.py  variables_yoursamp.py 
+```
+
+Then soft-link your sample's variables and inputs to the ones used by train_edb: 
+```
+ln -s variables_edb/variables_yoursamp.py variables.py
+
+ln -s yourcsv0.csv ref.csv 
+ln -s yourcsv1.csv to_weight.csv 
+
+```
+And run as usual
+
+# Original author's doc
+
 ==================================
 [![DOI](https://zenodo.org/badge/255859123.svg)](https://zenodo.org/badge/latestdoi/255859123)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
