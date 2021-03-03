@@ -14,6 +14,7 @@ def eval_and_store(
         x0,
         x1,
         weights,
+        plotname="",
         x0_enumber="",
         x1_enumber="",
         csv_path = ""):
@@ -30,7 +31,7 @@ def eval_and_store(
 
     #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
     # n = plot name extra (we leave it to default)
-    draw_ROC(X0, X1, weights, label="roc",legend="",do="",n="",plot=True)
+    draw_ROC(X0, X1, weights, label="roc",legend="",do="",n=plotname,plot=True)
 
     if (csv_path != ""):
         # check whether there was an associated event number to append
@@ -77,6 +78,7 @@ for i in evaluate:
     eval_and_store(x0=data_out_path + '/X0_'+i+'.npy',     
                    x1=data_out_path + '/X1_'+i+'.npy',
                    weights=w,
+                   plotname=i,
                    x0_enumber=x0_enumber_path,
                    x1_enumber=x1_enumber_path,
                    csv_path=out_csv_dir+"/"+i+".csv")
