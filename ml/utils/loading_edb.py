@@ -44,7 +44,7 @@ class Loader_edb():
  
         x0 : reference dataframe
 
-        x1 : dataframe to reweight
+        x1 : dataframe to reweight to
 
         save : bool, optional
             Save training and test samples. Default value:
@@ -103,32 +103,60 @@ class Loader_edb():
             print("filtered x0 outliers: ", (x00-len(x0))/len(x0)*100, "% ")
             print("filtered x1 outliers: ", (x10-len(x1))/len(x1)*100, "% ")
 
-        X0 = x0.to_numpy()
-        X1 = x1.to_numpy()
-        # combine
-        y0 = np.zeros(x0.shape[0])
-        y1 = np.ones(x1.shape[0])
+        # do this part in pandas 
 
-        # LM: test not used, why waste data ... 
-        #X0_train, X0_test, y0_train, y0_test = train_test_split(X0, y0, test_size=0.40, random_state=42)
-        #X1_train, X1_test, y1_train, y1_test = train_test_split(X1, y1, test_size=0.40, random_state=42)
-        X0_train, X0_val,  y0_train, y0_val =  train_test_split(X0, y0, test_size=val_frac, random_state=random_seed)
-        X1_train, X1_val,  y1_train, y1_val =  train_test_split(X1, y1, test_size=val_frac, random_state=random_seed)
-        X_train = np.vstack([X0_train, X1_train])
-        y_train = np.concatenate((y0_train, y1_train), axis=None)
-        X_val   = np.vstack([X0_val, X1_val])
-        y_val = np.concatenate((y0_val, y1_val), axis=None)
+        #X0 = x0.to_numpy()
+        #X1 = x1.to_numpy()
+        # combine
+        y0 = pd.DataFrame(np.zeros(x0.shape[0]))
+        y1 = pd.DataFrame(np.ones(x1.shape[0]))
+
+        x0_train, x0_val,  y0_train, y0_val =  train_test_split(x0, y0, test_size=val_frac, random_state=random_seed)
+        x1_train, x1_val,  y1_train, y1_val =  train_test_split(x1, y1, test_size=val_frac, random_state=random_seed)
+        x_train = pd.concat([x0_train, x1_train])
+        y_train = pd.concat((y0_train, y1_train))
+        x_val = pd.concat([x0_val, x1_val])
+        y_val = pd.concat((y0_val, y1_val))
+
+        # pop and store event number:
+        en='eventnumber'
+        if en in x_train:
+            x_train_en = x_train.eventnumber
+            x_train = x_train.drop([en], axis=1)
+            x_val_en = x_val.eventnumber
+            x_val = x_val.drop([en], axis=1)
+            if folder is not None and save:
+                np.save(folder + "/X_train_en.npy", x_train_en.to_numpy())
+                np.save(folder + "/X_val_en.npy", x_val_en.to_numpy())
+
+        if en in x0_train:
+            x0_train_en = x0_train.eventnumber
+            x0_train = x0_train.drop([en], axis=1)
+            x0_val_en = x0_val.eventnumber
+            x0_val = x0_val.drop([en], axis=1)
+            if folder is not None and save:
+                np.save(folder + "/X0_train_en.npy", x0_train_en.to_numpy())
+                np.save(folder + "/X0_val_en.npy", x0_val_en.to_numpy())
+
+        if en in x1_train:
+            x1_train_en = x1_train.eventnumber
+            x1_train = x1_train.drop([en], axis=1)
+            x1_val_en = x1_val.eventnumber
+            x1_val = x1_val.drop([en], axis=1)
+            if folder is not None and save:
+                np.save(folder + "/X1_train_en.npy", x1_train_en.to_numpy())
+                np.save(folder + "/X1_val_en.npy", x1_val_en.to_numpy())
 
         # save data
         if folder is not None and save:
-            np.save(folder  + "/X_train.npy", X_train)
-            np.save(folder  + "/y_train.npy", y_train)
-            np.save(folder  + "/X_val.npy", X_val)
-            np.save(folder  + "/y_val.npy", y_val)
-            np.save(folder  + "/X0_val.npy", X0_val)
-            np.save(folder  + "/X1_val.npy", X1_val)
-            np.save(folder  + "/X0_train.npy", X0_train)
-            np.save(folder  + "/X1_train.npy", X1_train)
+            np.save(folder  + "/X_train.npy", x_train.to_numpy())
+            np.save(folder  + "/y_train.npy", y_train.to_numpy())
+            np.save(folder  + "/X_val.npy", x_val.to_numpy())
+            np.save(folder  + "/y_val.npy", y_val.to_numpy())
+            np.save(folder  + "/X0_val.npy", x0_val.to_numpy())
+            np.save(folder  + "/X1_val.npy", x1_val.to_numpy())
+            np.save(folder  + "/X0_train.npy", x0_train.to_numpy())
+            np.save(folder  + "/X1_train.npy", x1_train.to_numpy())
             #Tar data files if training is done on GPU
             if torch.cuda.is_available():
                 plot = False #don't plot on GPU...
@@ -144,7 +172,7 @@ class Loader_edb():
                     tar.add(name)
                 tar.close()
 
-        return X_train, y_train, X0_train, X1_train
+        return x_train.to_numpy(), y_train.to_numpy(), x0_train.to_numpy(), x1_train.to_numpy()
 
     # LMTODO: did not touch any of these down here yet 
     def load_result(

@@ -16,71 +16,21 @@ from ml import Loader_edb
 from variables import get_variable_names
 from utils_edb import preprocess_inputs
 
-def get_ctorch_samples(p_data_x0,p_data_x1,p_path="",clean_outliers=True,p_store=True):
-    # returns S and B samples in format as used for carl torch processing
-    # optionally writes out to disk in format used by carl torch
-
-    # ensure we follow all carl torch framework requirements: 
-    p_data_x0,p_data_x1=edb_preprocess_inputs(p_data_x0,p_data_x1,cleaning_split=0.02) 
-
-    # now follow carl-torch/ml/utils/loading.py  Loader class does 
-
-    # add labels
-    p_data_x0['label']=0
-    p_data_x1['label']=1
-
-    # train-val split (pandas dataframes)
-    x0_df_train = p_data_x0.sample(frac=0.8,random_state=42)
-    x0_df_val = p_data_x0.drop(x0_df_train.index)
-    x1_df_train = p_data_x1.sample(frac=0.8,random_state=42)
-    x1_df_val = p_data_x1.drop(x1_df_train.index)
-    x_df_train = pd.concat([x0_df_train,x1_df_train])
-    x_df_val = pd.concat([x0_df_val,x1_df_val])
-
-    # make sure train and val each satisfy preprocessing requirements:
-    x_df_train = preprocess_inputs(x_df_train)
-    x_df_val = preprocess_inputs(x_df_val)
-    # preprocessing cleans up meaningless columns (as they can't be normalized)
-    # need make sure columns in all train/val components are consistent:
-    print('----------------------------------------')
-    print(type(x_df_train.index))
-    print(type(x_df_val.index))
-    print('----------------------------------------')
-
-    # set up numpy arrays as used by carl-torch:
-    X0_train= (x0_df_train.drop(['label'], axis=1)).to_numpy()
-    X1_train = (x1_df_train.drop(['label'], axis=1)).to_numpy()
-    X0_val= (x0_df_val.drop(['label'], axis=1)).to_numpy()
-    X1_val = (x1_df_val.drop(['label'], axis=1)).to_numpy()
-    X_train = (x_df_train.drop(['label'], axis=1)).to_numpy()
-    y_train = (x_df_train.label).to_numpy()    
-    X_val = (x_df_val.drop(['label'], axis=1)).to_numpy()
-    y_val = (x_df_val.label).to_numpy()
-
-    # save data
-    if p_store:
-        np.save(p_path + "/X_train.npy", X_train)
-        np.save(p_path + "/y_train.npy", y_train)
-        np.save(p_path + "/X_val.npy", X_val)
-        np.save(p_path + "/y_val.npy", y_val)
-        np.save(p_path + "/X0_val.npy", X0_val)
-        np.save(p_path + "/X1_val.npy", X1_val)
-        np.save(p_path + "/X0_train.npy", X0_train)
-        np.save(p_path + "/X1_train.npy", X1_train)
-    
-    return(X_train,y_train,X0_train,X1_train)
-
 #-----------------------------------------------------------------------------
 # main 
-#TODO Matt: set input file name here
-infile_old="ref.csv" # reference
-infile_new="to_weight.csv" # to reweight
-#TODO Matt: set to True or False depending on your sample
+# reference sample which gets the weights assigned
+infile_old="ref.csv"
+# sample to which we want to weight
+infile_new="to_weight.csv"
+
+# Vyy validation speficic: TODO Matt: set to True or False depending on your sample
 is_eeyy = True
-# TODO Matt: set where outputs go (make sure these dirs exist)
+
+# where outputs go (make sure these dirs exist)
 data_out_path="data"
 store_data=True
 model_out_path="model"
+
 # try to use same seed in all steps for reproducibility
 random_seed=42
 #-----------------------------------------------------------------------------
@@ -125,6 +75,9 @@ estimator = RatioEstimator(
     n_hidden=(10,10,10),
     activation="relu"
 )
+
+
+# pop event number, as this should not be used for training
 estimator.train(
     method='carl',
     batch_size = 1024,
@@ -142,3 +95,4 @@ estimator.train(
 model_out_path = model_out_path +'/carl/'
 print('all done, saving model to:', model_out_path)
 estimator.save(model_out_path, x=x, export_model = True)
+
