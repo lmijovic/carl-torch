@@ -82,7 +82,7 @@ ln -s yourcsv0.csv ref.csv
 ln -s yourcsv1.csv to_weight.csv 
 
 ```
-And run as usual
+And run as in usual (train\_edb.py / evaluate\_edb.py )
 
 # Original author's doc
 
