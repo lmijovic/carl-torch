@@ -23,9 +23,6 @@ infile_old="ref.csv"
 # sample to which we want to weight
 infile_new="to_weight.csv"
 
-# Vyy validation speficic: TODO Matt: set to True or False depending on your sample
-is_eeyy = True
-
 # where outputs go (make sure these dirs exist)
 data_out_path="data"
 store_data=True
@@ -48,7 +45,7 @@ if os.path.exists(data_out_path + '/X_train.npy'):
         tar.close()
 else:
     # read variables from csv and map them to columns:
-    col_names = get_variable_names(is_eeyy)
+    col_names = get_variable_names()
     # read-in csv, skip the 1st row which contains column pseudo-names 
     data_x0=pd.read_csv(infile_old,skiprows=1, header=None,names=col_names)
     data_x1=pd.read_csv(infile_new,skiprows=1, header=None,names=col_names)

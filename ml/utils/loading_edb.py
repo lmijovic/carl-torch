@@ -103,11 +103,7 @@ class Loader_edb():
             print("filtered x0 outliers: ", (x00-len(x0))/len(x0)*100, "% ")
             print("filtered x1 outliers: ", (x10-len(x1))/len(x1)*100, "% ")
 
-        # do this part in pandas 
-
-        #X0 = x0.to_numpy()
-        #X1 = x1.to_numpy()
-        # combine
+        # EDB: do this part in pandas 
         y0 = pd.DataFrame(np.zeros(x0.shape[0]))
         y1 = pd.DataFrame(np.ones(x1.shape[0]))
 
@@ -118,6 +114,8 @@ class Loader_edb():
         x_val = pd.concat([x0_val, x1_val])
         y_val = pd.concat((y0_val, y1_val))
 
+        #---------------------------------------------------------------
+        # event number handling: 
         # pop and store event number:
         en='eventnumber'
         if en in x_train:
@@ -146,7 +144,10 @@ class Loader_edb():
             if folder is not None and save:
                 np.save(folder + "/X1_train_en.npy", x1_train_en.to_numpy())
                 np.save(folder + "/X1_val_en.npy", x1_val_en.to_numpy())
+        # end of event number handling 
+        #---------------------------------------------------------------
 
+        #---------------------------------------------------------------
         # save data
         if folder is not None and save:
             np.save(folder  + "/X_train.npy", x_train.to_numpy())
@@ -171,6 +172,7 @@ class Loader_edb():
                              folder  + "/X1_train.npy"]:
                     tar.add(name)
                 tar.close()
+        #---------------------------------------------------------------
 
         return x_train.to_numpy(), y_train.to_numpy(), x0_train.to_numpy(), x1_train.to_numpy()
 

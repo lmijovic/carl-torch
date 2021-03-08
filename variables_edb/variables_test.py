@@ -1,4 +1,4 @@
-def get_variable_names(p_dummy=False):
+def get_variable_names():
     
     # names of variables to use:
     names_all = ["eventnumber","x"]
