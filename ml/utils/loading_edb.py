@@ -176,18 +176,14 @@ class Loader_edb():
 
         return x_train.to_numpy(), y_train.to_numpy(), x0_train.to_numpy(), x1_train.to_numpy()
 
-    # LMTODO: did not touch any of these down here yet 
+
     def load_result(
-        self,
-        x0,
-        x1,
-        weights = None,
-        label = None,
-        do = 'dilepton',
-        var = 'qsf',
-        plot = False,
-        n = 0,
-        path = '',
+            self,
+            x0,
+            x1,
+            weights = None,
+            label = None,
+            plot = False
     ):
         """
         Parameters
@@ -197,34 +193,17 @@ class Loader_edb():
         Returns
         -------
         """
-        eventVars = ['Njets', 'MET']
-        jetVars   = ['Jet_Pt', 'Jet_Mass']
-        lepVars   = ['Lepton_Pt']
-        etaJ = [-2.8,-2.4,-2,-1.6,-1.2,-0.8,-0.4,0,0.4,0.8,1.2,1.6,2,2.4,2.8]
-        jetBinning = [range(0, 1500, 50), range(0, 200, 10)]
-        lepBinning = [range(0, 700, 20)]
-
-        binning = [range(0, 12, 1), range(0, 900, 25)]+jetBinning+jetBinning+lepBinning+lepBinning
-        x0df, labels = load(f = path+'/Sh_228_ttbar_'+do+'_EnhMaxHTavrgTopPT_nominal.root', 
-                            events = eventVars, jets = jetVars, leps = lepVars, n = 1, t = 'Tree')
         # load samples
         X0 = load_and_check(x0, memmap_files_larger_than_gb=1.0)
         X1 = load_and_check(x1, memmap_files_larger_than_gb=1.0)
         weights = weights / weights.sum() * len(X1)
-        if int(n) > 10000: # no point in plotting distributions with too few events, they only look bad 
-            # plot ROC curves     
-            draw_ROC(X0, X1, weights, label, var, do, plot)
-            # plot reweighted distributions     
-            draw_weighted_distributions(X0, X1, weights, x0df.columns, labels, binning, label, var, do, n, plot) 
+        draw_ROC(X0, X1, weights, label, legend="", do="", n="calibration_plotname", plot=plot)
 
     def load_calibration(
         self,
         y_true,
         p1_raw = None,
         p1_cal = None,
-        label = None,
-        do = 'dilepton',
-        var = 'qsf',
         plot = False
     ):
         """
@@ -242,4 +221,4 @@ class Loader_edb():
 
         # load samples
         y_true  = load_and_check(y_true,  memmap_files_larger_than_gb=1.0)
-        plot_calibration_curve(y_true, p1_raw, p1_cal, do, var, plot)                                                                                                                                                                                                                                                                   
+        plot_calibration_curve(y_true, p1_raw, p1_cal, do="", var="", save=plot)                                                                                                                                                                                                                                                                   

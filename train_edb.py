@@ -62,7 +62,7 @@ else:
         folder = data_out_path,
         randomize = False,
         random_seed = random_seed,
-        val_frac = 0.1,
+        val_frac = 0.5,
         preprocessing = False
     )
     print("Loaded new datasets ")

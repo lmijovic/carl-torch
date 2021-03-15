@@ -1,14 +1,12 @@
 import os
 import sys
-import optparse
 import numpy as np
 
 from ml import RatioEstimator
-from ml.utils.loading import Loader
 from ml.utils.tools import load_and_check
 from ml.utils.plotting import draw_ROC
 
-
+from sklearn import preprocessing
 
 def eval_and_store(
         x0,
@@ -31,7 +29,19 @@ def eval_and_store(
 
     #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
     # n = plot name extra (we leave it to default)
-    draw_ROC(X0, X1, weights, label="roc",legend="",do="",n=plotname,plot=True)
+    # ROC Curve: this is calculate with a separate ML algorithm
+    # we need to scale inputs: scale together, than split them back
+    Xall = np.concatenate((X0,X1), axis=0)
+    # standard scaling
+    #scaler = preprocessing.StandardScaler().fit(Xall)
+    #Xall_scaled = scaler.transform(Xall)
+    # minmax scaling
+    Xall_scaled = (Xall-np.min(Xall,axis=0))/(np.max(Xall,axis=0)-np.min(Xall,axis=0))
+    x0_scaled = Xall_scaled[0:X0.shape[0],:]
+    x1_scaled = Xall_scaled[X0.shape[0]:,:]
+
+    # 
+    draw_ROC(x0_scaled, x1_scaled, weights, label="roc",legend="",do="",n=plotname,plot=True)
 
     if (csv_path != ""):
         # check whether there was an associated event number to append
@@ -63,9 +73,26 @@ evaluate = ['train','val']
 for i in evaluate:
 
     x0=data_out_path + '/X0_'+i+'.npy'
-    r_hat, _ = carl.evaluate(x=data_out_path + '/X0_'+i+'.npy')
+    r_hat, s_hat = carl.evaluate(x=data_out_path + '/X0_'+i+'.npy')
+##    print('what is Carl returning?')
+##    r=r_hat[0]
+##    s=s_hat[0]
+##    print('r=p0/p1,s=p0/(p0+p1)')
+##    print(r,s,r/(1+r))
+##    print('r=p1/p0,s=p0/(p0+p1)') # this 
+##    print(r,s,1/(1+r))
+##    print('r=p0/p1,s=p1/(p0+p1)') # this 
+##    print(r,s,1/(1+r))
+##    print('r=p1/p0,s=p1/(p0+p1)')
+##    print(r,s,r/(1+r))
+##
+##    exit(0)
+    # Carl is returning this:
+    # s_hat = p1 / (p0+p1), where 0 corresponds to X0
+    # r_hat = p0/p1
+    # weight will be assigned to X0, hence has to correspond to p1/p0
     w = 1./r_hat
-
+    
     # check whether there was an associated event number path:
     x0_enumber_path = data_out_path + '/X0_'+i+'_en.npy'
     if not os.path.isfile(x0_enumber_path):
