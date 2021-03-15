@@ -63,7 +63,7 @@ else:
         randomize = False,
         random_seed = random_seed,
         val_frac = 0.5,
-        preprocessing = False
+        filter_outliers = True
     )
     print("Loaded new datasets ")
 

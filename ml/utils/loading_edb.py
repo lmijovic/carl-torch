@@ -36,7 +36,7 @@ class Loader_edb():
         randomize = False,
         random_seed = 42,
         val_frac=0.3,
-        preprocessing = True
+        filter_outliers = True
     ):
         """
         Parameters
@@ -86,24 +86,28 @@ class Loader_edb():
             print('Cannot create inputs, empty x0 or x1:', x0, x1)
             return(x0,x1)
 
-        # LMTODO: crashes
-        if preprocessing:
-            factor = 5
-            x00 = len(x0)
-            x10 = len(x1)
-            for column in x0.columns:
-                upper_lim = x0[column].mean () + x0[column].std () * factor
-                upper_lim = x1[column].mean () + x1[column].std () * factor
-                lower_lim = x0[column].mean () - x0[column].std () * factor
-                lower_lim = x1[column].mean () - x1[column].std () * factor
-                x0 = x0[(x0[column] < upper_lim) & (x0[column] > lower_lim)]
-                x1 = x1[(x1[column] < upper_lim) & (x1[column] > lower_lim)]
-            x0 = x0.round(decimals=2)
-            x1 = x1.round(decimals=2)
-            print("filtered x0 outliers: ", (x00-len(x0))/len(x0)*100, "% ")
-            print("filtered x1 outliers: ", (x10-len(x1))/len(x1)*100, "% ")
+        # event number column requires special handling
+        en='eventnumber'
+        
+        # Filter out evens in the tails, but ignore eventnumber in filter:
+        if filter_outliers:
+            factor = 3
 
-        # EDB: do this part in pandas 
+            nev_x0 = x0.shape[0]
+            for column in x0:
+                if (column!=en):
+                    x0 = x0[np.abs(x0[column]-x0[column].mean()) <= (factor*x0[column].std())]
+            nev_x0_postcut = x0.shape[0]
+            print("filtered outliers in sample: ",100.*(nev_x0-x0.shape[0])/nev_x0, "% ")
+
+            nev_x1 = x1.shape[0]
+            for column in x1:
+                if (column!=en):
+                    x1 = x1[np.abs(x1[column]-x1[column].mean()) <= (factor*x1[column].std())]
+            nev_x1_postcut = x1.shape[0]
+            print("filtered outliers in sample: ",100.*(nev_x1-x1.shape[0])/nev_x1, "% ")
+
+        # prepare samples 
         y0 = pd.DataFrame(np.zeros(x0.shape[0]))
         y1 = pd.DataFrame(np.ones(x1.shape[0]))
 
@@ -117,7 +121,6 @@ class Loader_edb():
         #---------------------------------------------------------------
         # event number handling: 
         # pop and store event number:
-        en='eventnumber'
         if en in x_train:
             x_train_en = x_train.eventnumber
             x_train = x_train.drop([en], axis=1)
