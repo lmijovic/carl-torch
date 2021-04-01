@@ -46,9 +46,10 @@ if os.path.exists(data_out_path + '/X_train.npy'):
 else:
     # read variables from csv and map them to columns:
     col_names = get_variable_names()
-    # read-in csv, skip the 1st row which contains column pseudo-names 
-    data_x0=pd.read_csv(infile_old,skiprows=1, header=None,names=col_names)
-    data_x1=pd.read_csv(infile_new,skiprows=1, header=None,names=col_names)
+    # read-in csv
+    # in case 1st row contains column pseudo-names, set skiprows=1
+    data_x0=pd.read_csv(infile_old,skiprows=0, header=None,names=col_names)
+    data_x1=pd.read_csv(infile_new,skiprows=0, header=None,names=col_names)
 
     # preprocessing of generic input to ensure they satisfy carl-torch framework req.
     data_x0,data_x1=preprocess_inputs(data_x0,data_x1,cleaning_split=0.05,random_seed=random_seed)
