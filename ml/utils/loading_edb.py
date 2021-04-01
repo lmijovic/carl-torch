@@ -200,7 +200,15 @@ class Loader_edb():
         X0 = load_and_check(x0, memmap_files_larger_than_gb=1.0)
         X1 = load_and_check(x1, memmap_files_larger_than_gb=1.0)
         weights = weights / weights.sum() * len(X1)
-        draw_ROC(X0, X1, weights, label, legend="", do="", n="calibration_plotname", plot=plot)
+
+        # ROC Curve: this is calculate with a separate ML algorithm
+        # we need to scale inputs: scale together, than split them back
+        Xall = np.concatenate((X0,X1), axis=0)
+        Xall_scaled = (Xall-np.min(Xall,axis=0))/(np.max(Xall,axis=0)-np.min(Xall,axis=0))
+        X0_scaled = Xall_scaled[0:X0.shape[0],:]
+        X1_scaled = Xall_scaled[X0.shape[0]:,:]
+        
+        draw_ROC(X0_scaled, X1_scaled, weights, label, legend="", do="", n="calibration_plotname", plot=plot)
 
     def load_calibration(
         self,
@@ -224,4 +232,4 @@ class Loader_edb():
 
         # load samples
         y_true  = load_and_check(y_true,  memmap_files_larger_than_gb=1.0)
-        plot_calibration_curve(y_true, p1_raw, p1_cal, do="", var="", save=plot)                                                                                                                                                                                                                                                                   
+        plot_calibration_curve(y_true, p1_raw, p1_cal, do="", var="", save=plot)

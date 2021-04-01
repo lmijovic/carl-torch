@@ -28,7 +28,7 @@ def eval_and_store(
     weights = weights / weights.sum() * len(X1)
 
     #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
-    # n = plot name extra (we leave it to default)
+ 
     # ROC Curve: this is calculate with a separate ML algorithm
     # we need to scale inputs: scale together, than split them back
     Xall = np.concatenate((X0,X1), axis=0)
@@ -40,7 +40,7 @@ def eval_and_store(
     x0_scaled = Xall_scaled[0:X0.shape[0],:]
     x1_scaled = Xall_scaled[X0.shape[0]:,:]
 
-    # 
+    # n = plot name extra (we leave it to default)
     draw_ROC(x0_scaled, x1_scaled, weights, label="roc",legend="",do="",n=plotname,plot=True)
 
     if (csv_path != ""):

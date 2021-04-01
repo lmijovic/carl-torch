@@ -151,6 +151,8 @@ class HistogramCalibrator():
             t_min = max(0, min(np.min(t0), np.min(t1)) - self.eps)
             t_max = min(1, max(np.max(t0), np.max(t1)) + self.eps)
             range = [(t_min, t_max)]
+        # LMTODO : this should not be hard-coded, add flexibility to code
+        range = [(0.0,0.5)]
         # Fit
         self.calibrator0 = Histogram(bins=bins, range=range,
                                      interpolation=self.interpolation,
