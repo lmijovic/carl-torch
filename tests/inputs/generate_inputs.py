@@ -16,7 +16,7 @@ def make_sample(mu=0,sigma=1,nevents=1000,start_eventnumber=1):
 def write_to_csv(sample,filename):    
     with open(filename,'w') as tofile:
         writer = csv.writer(tofile,delimiter=",")
-        writer.writerow(('eventnumber','x'))
+        #writer.writerow(('eventnumber','x'))
     with open (filename,'a') as tofile:
         np.savetxt(tofile, s, delimiter=',')
     return
@@ -32,7 +32,7 @@ write_to_csv(s,"old.csv")
 
 # asssign the 2nd sample distinct event numbers 
 start_en+=(start_en+nevents)*10
-nevents=200000
+nevents=100000
 # new sample, to which we reweight:
 s1 = make_sample(mu=1.,sigma=1.0,nevents=nevents,start_eventnumber=start_en)
 s2 = make_sample(mu=-1.,sigma=1.0,nevents=nevents,start_eventnumber=start_en+nevents+1)
