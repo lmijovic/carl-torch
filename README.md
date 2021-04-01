@@ -32,61 +32,79 @@ git clone https://github.com/lmijovic/carl-torch.git
 
 
 ```
-
+## Conventions: 
+   * Inputs: .csv format with no header
+   * Variable names: should be passed in file variables.py
+   * If you are using event number (ATLAS), the column name should be eventnumber
+   * If you are using an event weight (for eg cross-secton weight) the column name should be weight. Note: class weight for unequal numbers of signal and backgrounds is assigned automatically, in addition to this weight.
+   
 ## Test Run
+
+
 ```
 # clean any old results: 
 rm -fr data/ model/ plots/
 
+# generate some test inputs: 
+cd tests/inputs/
+pyton generate_inputs.py
+
+# back to carl-torch directory: 
+cd -
+# make sure you are in carl-torch before next steps
+
 # set samples to use
-ln -s tests_edb/inputs/sm.csv ref.csv
-ln -s tests_edb/inputs/bsm.csv to_weight.csv
+# this file will eventually get weights, such that it can be rewght-ed to new.csv
+ln -s tests/inputs/old.csv ref.csv
+# we want to weight to this file: 
+ln -s new/inputs/old.csv  to_weight.csv
 
 # set variables to use 
-ln -s variables_edb/variables_test.py variables.py
+ln -s tests/variables_test.py variables.py
 
 # train
-python train_edb.py 
+python train.py 
 
-# get CARL roc curves 
-python evaluate_edb.py
+# get CARL roc curves and write-out weighted samples
+python evaluate.py
+# yields ROC curve plots in plots/ , and output .csv samples with carl weights in out_csv 
 
+# calibrate the weights and write-out calib. weighted samples
+python calibrate.py
+# yields ROC curve plots in plots/ , and output .csv samples with calibrated carl weights in out_csv
+
+```
+
+## How to adapt the code for a new sample
+
+say you have a signal and background .csv (both with same columns) and want to run over them.
+The .csv should have no header line. 
+
+1) create list of your variables:, using test as a template 
+```
+
+cp tests/variables_test.py your_directory/variables.py
 
 ```
 
-## Changes wrt original code
+And insert the names of all your quantities in your .csv file accordingly. Note that weight column (eg event generator weight) is conventionally called 'weight' and event number (if you use it) "eventnumber"
 
-## How to adapt code for a new sample
-
-say you have a signal and background .csv (both with same columns) and want to run over them 
-
-1) create list of your variables in 
+Then go to top carl-torch dir and soft-link your sample's variables and inputs to the ones used by train: 
 ```
-variables_edb/
+ln -s your_directory/variables.py variables.py
 
-```
-Note that weight column is conventionally called 'weight' ; please follow this convention to account for weights properly
-
-
-Using test run variables as template, this is simply : 
-```
-cd variables_edb/
-cp variables_test.py  variables_yoursamp.py 
-```
-
-Then soft-link your sample's variables and inputs to the ones used by train_edb: 
-```
-ln -s variables_edb/variables_yoursamp.py variables.py
-
-ln -s yourcsv0.csv ref.csv 
-ln -s yourcsv1.csv to_weight.csv 
+ln -s your_directory/yourcsv0.csv ref.csv 
+ln -s your_directory/yourcsv1.csv to_weight.csv 
 
 ```
-And run as in usual (train\_edb.py / evaluate\_edb.py )
+And run as in usual (train.py / evaluate.py / calibrate.py)
+
 
 # Original author's doc
 
 ==================================
+
+
 [![DOI](https://zenodo.org/badge/255859123.svg)](https://zenodo.org/badge/latestdoi/255859123)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![arXiv](http://img.shields.io/badge/arXiv-1506.02169-B31B1B.svg)](https://arxiv.org/abs/1506.02169)
