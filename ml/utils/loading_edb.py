@@ -26,7 +26,68 @@ class Loader_edb():
     """
     def __init__(self):
         super(Loader_edb, self).__init__()
+
+    def load_file(
+            self,
+            x = None,
+            label = 0,
+            save = False,
+            folder=None 
+    ):
+        """
+        load singe file to numpy format used by the framework
+
+        Parameters
+        ----------
+ 
+        x : pandas dataframe
+
+        label = 0, 1
+        0 : reference file to weight <-- you likely need this, thus default
+        1 : new file to which we are trying to weight 
+
+        """
+
+        # LM: default framework loads hard-coded samples;
+        # instead we take data-frames as passes by the caller
+        # check whether input dataframes were passed
+        if ( x is None):
+            print('File to load was not specified, nothing to be done')
+            return(None,None,None)
+
+        create_missing_folders([folder])
+
+        # event number column requires special handling
+        en='eventnumber'
         
+        # prepare labels:
+        y = pd.DataFrame(np.zeros(x.shape[0]))
+        if (0 == label):
+            pass
+        elif (1 == label):
+            y = pd.DataFrame(np.ones(x.shape[0]))
+        else:
+            print('Unsupported label: ', label, 'will use label=0 instead')
+
+        if en in x:
+            x_en = x.eventnumber
+            x = x.drop([en], axis=1)
+            if folder is not None and save:
+                np.save(folder + "/X.npy", x.to_numpy())
+                np.save(folder + "/X_en.npy", x_en.to_numpy())
+                np.save(folder + "/y.npy", y.to_numpy())
+            return x.to_numpy(),y.to_numpy(),x_en.to_numpy()
+
+        else:
+            if folder is not None and save:
+                np.save(folder + "/X.npy", x.to_numpy())
+                np.save(folder + "/y.npy", y.to_numpy())
+            
+        # should never get to here
+        print('Warning, load_file not successful')
+        return None,None,None
+
+
     def loading(
         self,
         x0 = None,
