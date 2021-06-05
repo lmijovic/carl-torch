@@ -69,6 +69,9 @@ python train.py
 python evaluate.py
 # yields ROC curve plots in plots/ , and output .csv samples with carl weights in out_csv 
 
+# predict the weights for all events in ref.csv file, & store them to disk for any further processing
+python predict.py 
+
 # calibrate the weights and write-out calib. weighted samples
 python calibrate.py
 # yields ROC curve plots in plots/ , and output .csv samples with calibrated carl weights in out_csv
@@ -97,7 +100,7 @@ ln -s your_directory/yourcsv0.csv ref.csv
 ln -s your_directory/yourcsv1.csv to_weight.csv 
 
 ```
-And run as in usual (train.py / evaluate.py / calibrate.py)
+And run as in usual (train.py / evaluate.py / calibrate.py / predict.py )
 
 
 # Original author's doc
