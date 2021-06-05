@@ -1,5 +1,4 @@
 import os
-import sys
 import numpy as np
 
 from ml import RatioEstimator
@@ -25,7 +24,7 @@ def eval_and_store(
     if (x1_enumber!=""):
         X1_en = load_and_check(x1_enumber, memmap_files_larger_than_gb=1.0)
 
-    weights = weights / weights.sum() * len(X1)
+    weights = weights / weights.sum() * len(X0)
 
     #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
  
