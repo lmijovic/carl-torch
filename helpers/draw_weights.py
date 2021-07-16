@@ -73,7 +73,7 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
         xpos=max(xsig-0.1*xspan,xmin)
         plt.text(np.log10(xpos), 0.8*yspan, crop_str,
                  rotation='horizontal', verticalalignment = 'top' , horizontalalignment = 'right' )
-        
+
     if (extra_text!=""):
         plt.text(xmax, ymin+1.05*yspan, extra_text, horizontalalignment = 'right',fontsize=12)
     plt.xlabel('log10(|CARL weight|)',horizontalalignment='right', x=1.0)
