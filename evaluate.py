@@ -1,17 +1,20 @@
 import os
 import numpy as np
 
+from sklearn import preprocessing
+
 from ml import RatioEstimator
 from ml.utils.tools import load_and_check
 from ml.utils.plotting import draw_ROC
-
-from sklearn import preprocessing
+from helpers.draw_weights import draw_weights
 
 def eval_and_store(
         x0,
         x1,
         weights,
+        crop_weight_sigma=-1,
         plotname="",
+        extra_text="",
         x0_enumber="",
         x1_enumber="",
         csv_path = ""):
@@ -24,7 +27,19 @@ def eval_and_store(
     if (x1_enumber!=""):
         X1_en = load_and_check(x1_enumber, memmap_files_larger_than_gb=1.0)
 
+    draw_weights(weights,crop_weight_sigma=crop_weight_sigma,extra_text=extra_text)
+
+    if (crop_weight_sigma>0):
+        # crop weights greater than N sigma from abs average:
+        absweights=np.abs(weights)
+        wmax=np.mean(absweights)+crop_weight_sigma*np.std(absweights)
+        print('Cropping |weights - mean| > ',crop_weight_sigma,"*sigma from average, cropped:",
+              100.*(len(weights[weights>wmax])+len(weights[weights<-1.*wmax]))/len(weights),"%")
+        weights[weights>wmax]=1
+        weights[weights<-1.*wmax]=1
+
     weights = weights / weights.sum() * len(X0)
+    exit(0)
 
     #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
  
@@ -60,6 +75,13 @@ model_out_path="model"
 
 # directory to which events+carl weights should be written in .csv:
 out_csv_dir="out_csv"
+
+# stamp for plots when using ATLAS samples
+extra_text="ATLAS Simulation, Work in Progress"
+
+# crop (=set to 1) outlier weights more than N sigma from average
+crop_weight_sigma = 10
+
 #-----------------------------------------------------------------------------
 
 if not os.path.exists(out_csv_dir):
@@ -104,7 +126,9 @@ for i in evaluate:
     eval_and_store(x0=data_out_path + '/X0_'+i+'.npy',     
                    x1=data_out_path + '/X1_'+i+'.npy',
                    weights=w,
+                   crop_weight_sigma=crop_weight_sigma,
                    plotname=i,
+                   extra_text=extra_text,
                    x0_enumber=x0_enumber_path,
                    x1_enumber=x1_enumber_path,
                    csv_path=out_csv_dir+"/"+i+".csv")
