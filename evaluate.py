@@ -1,18 +1,22 @@
-import os
-import numpy as np
-
-from sklearn import preprocessing
-
 from ml import RatioEstimator
 from ml.utils.tools import load_and_check
 from ml.utils.plotting import draw_ROC
 from helpers.draw_weights import draw_weights
+from utils_edb import crop_weight_nsig
+from utils_edb import crop_weight_nperc
+from utils_edb import force_nonzero
+from utils_edb import ensure_positive_weight
+
+from sklearn import preprocessing
+import numpy as np
+import os
 
 def eval_and_store(
         x0,
         x1,
         weights,
         crop_weight_sigma=-1,
+        crop_weight_perc=-1,
         plotname="",
         extra_text="",
         x0_enumber="",
@@ -27,20 +31,21 @@ def eval_and_store(
     if (x1_enumber!=""):
         X1_en = load_and_check(x1_enumber, memmap_files_larger_than_gb=1.0)
 
-    draw_weights(weights,crop_weight_sigma=crop_weight_sigma,extra_text=extra_text)
 
+    noncropped_weights=weights
+    maxweight=-1
+    if (crop_weight_perc>0):
+        weights,_maxweight=crop_weight_nperc(weights,crop_weight_perc)
+        maxweight=max(maxweight,_maxweight)
 
     if (crop_weight_sigma>0):
-        # crop weights greater than N sigma from abs average:
-        absweights=np.abs(weights)
-        wmax=np.mean(absweights)+crop_weight_sigma*np.std(absweights)
-        print('Cropping |weights - mean| > ',crop_weight_sigma,"*sigma from average, cropped:",
-              100.*(len(weights[weights>wmax])+len(weights[weights<-1.*wmax]))/len(weights),"%")
-        weights[weights>wmax]=1
-        weights[weights<-1.*wmax]=1
-        
-    weights = weights / weights.sum() * len(X0)
+        weights,_maxweight=crop_weight_nsig(weights,crop_weight_sigma)
+        maxweight=max(maxweight,_maxweight)
+      
+    draw_weights(noncropped_weights,maxweight,extra_text=extra_text)
 
+    weights = weights / weights.sum() * len(X0)
+    exit(0)
  
     # ROC Curve: this is calculate with a separate ML algorithm
     # we need to scale inputs: scale together, than split them back
@@ -82,8 +87,11 @@ extra_text="ATLAS Simulation, Work in Progress"
 # set this to very low, as we'll also filter large weights 
 zero_w_bound = np.finfo(float).eps
 
-# crop (=set to 1) outlier weights more than N sigma from average
-crop_weight_sigma = 10
+# crop outlier weights more than N sigma from average
+crop_weight_sigma = 5
+
+# alternatively: crop X% of largest weight
+crop_weight_perc = -1.
 
 #-----------------------------------------------------------------------------
 
@@ -116,11 +124,11 @@ for i in evaluate:
     # r_hat = p0/p1
     # weight will be assigned to X0, hence has to correspond to p1/p0
 
-    # how should we prevent 0-division?
-    n_zero_weight=len(r_hat[r_hat < zero_w_bound])
-    if (n_zero_weight>0):
-        print("Filtering zero-weight events:",100.*n_zero_weight/len(r_hat),'%')
-        r_hat[r_hat < zero_w_bound]=1.
+    # prevent -ve weights (should be rounding only):
+    r_hat = ensure_positive_weight(r_hat)
+
+    # prevent 0-division?
+    r_hat = force_nonzero(r_hat,zero_w_bound)
 
     # now evaluate the weight to apply to X0
     w = 1./r_hat
@@ -138,6 +146,7 @@ for i in evaluate:
                    x1=data_out_path + '/X1_'+i+'.npy',
                    weights=w,
                    crop_weight_sigma=crop_weight_sigma,
+                   crop_weight_perc=crop_weight_perc,
                    plotname=i,
                    extra_text=extra_text,
                    x0_enumber=x0_enumber_path,

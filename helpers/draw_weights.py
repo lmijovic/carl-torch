@@ -14,7 +14,7 @@ def get_w(p_arr):
     numerators = np.ones_like(p_arr)
     return(numerators/sum_weights)
 
-def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
+def draw_weights(carl_weights=[],maxweight=-1,extra_text=""):
     '''
     show carl weights distribution in lin/log x-scales
     '''
@@ -25,10 +25,12 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
     xsig=-1
     crop_str=""
     crop_line_color='firebrick'
-    if (crop_weight_sigma>0):
-        xsig=np.mean(carl_weights)+crop_weight_sigma*np.std(carl_weights)
-        crop_str='$\\frac{|w-\mathrm{mean}|}{\sigma}>$ '+ str(crop_weight_sigma)
-        #crop_str="kurac"
+    if (maxweight>0):
+        xsig=maxweight
+        # nominal display
+        #crop_str='cut'
+        # manually set nice display
+        crop_str='$\\frac{|w-\mathrm{mean}|}{\sigma}>$ 5'
     # linear scale 
     plt.figure()
     plt.hist(abs(carl_weights), bins=(100),
@@ -40,7 +42,7 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
     yspan=ymax-ymin
     xmin, xmax = axes.get_xlim()
     xspan=xmax-xmin
-    if (crop_weight_sigma>0):
+    if (maxweight>0):
         plt.axvline(xsig,linewidth=1.5, color=crop_line_color)
         # add info on cropped value 
         xpos=max(xsig-0.01*xspan,xmin)
@@ -50,7 +52,7 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
     if (extra_text!=""):
         plt.text(xmax, ymin+1.05*yspan, extra_text, horizontalalignment = 'right',fontsize=12)
 
-    plt.xlabel('|CARL weight|',horizontalalignment='right', x=1.0)
+    plt.xlabel('CARL weight',horizontalalignment='right', x=1.0)
     plt.ylabel('Fraction of events',horizontalalignment='right', y=1.0)
     plt.savefig("carl_weight.png", bbox_inches='tight',dpi=200)
     plt.savefig("carl_weight.pdf", bbox_inches='tight')
@@ -62,7 +64,7 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
              weights=get_w(carl_weights))
     plt.yscale('log')
 
-    if (crop_weight_sigma>0):
+    if (maxweight>0):
         plt.axvline(np.log10(xsig),linewidth=1.5, color=crop_line_color)
         # add info on cropped value 
         axes = plt.gca()
@@ -76,7 +78,7 @@ def draw_weights(carl_weights=[],crop_weight_sigma=-1,extra_text=""):
 
     if (extra_text!=""):
         plt.text(xmax, ymin+1.05*yspan, extra_text, horizontalalignment = 'right',fontsize=12)
-    plt.xlabel('log10(|CARL weight|)',horizontalalignment='right', x=1.0)
+    plt.xlabel('log10(CARL weight)',horizontalalignment='right', x=1.0)
     plt.ylabel('Fraction of events',horizontalalignment='right', y=1.0)
     plt.savefig("carl_weight_log.png", bbox_inches='tight',dpi=200)
     plt.savefig("carl_weight_log.pdf", bbox_inches='tight')

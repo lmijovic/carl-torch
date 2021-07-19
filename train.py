@@ -79,7 +79,7 @@ estimator = RatioEstimator(
 estimator.train(
     method='carl',
     batch_size = 1024,
-    n_epochs = 100,
+    n_epochs = 300,
     x=x,
     y=y,
     x0=x0, 

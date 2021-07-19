@@ -88,7 +88,7 @@ class Loader():
                            events = eventVars, jets = jetVars, leps = lepVars, n = int(nentries), t = 'Tree', do = do)
         binning = [range(0, 12, 1), range(0, 900, 25)]+jetBinning+jetBinning+lepBinning+lepBinning
         if preprocessing:
-            factor = 5
+            factor = 20
             x00 = len(x0)
             x10 = len(x1)
             for column in x0.columns:
