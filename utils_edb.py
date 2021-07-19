@@ -46,5 +46,94 @@ def preprocess_inputs(df0_in,df1_in,cleaning_split=0.05,random_seed=42):
     # filter input samples to keep only these columns:
     return(df0_in[_comp.index],df1_in[_comp.index])
 
+# weight handling:
+def crop_weight_nsig(weightarr,crop_weight_sigma):
+    '''
+    crop weights greater than N sigma from abs average:
+    '''
+    
+    # checks:
+    assert isinstance(weightarr,np.ndarray), print('Error: crop_weight_nperc expects ndarray, got:',type(weightarr))
+
+    # copy to prevent overwriting original weights
+    weights_ret=weightarr.copy()
+
+    if (len(weights_ret[weights_ret < 0])>0):
+        print('crop_weight_nsig: negative weights obtained, enforcing +ve weigts first.')
+        ensure_positive_weight(weights_ret)
+
+    wmax=np.mean(weights_ret)+crop_weight_sigma*np.std(weights_ret)
+    print('Cropping |weights - mean| > ',crop_weight_sigma,"*sigma = ",
+          crop_weight_sigma*np.std(weights_ret),"from average, cropped:",
+          100.*(len(weights_ret[weights_ret>=wmax]))/len(weights_ret),"%")
+    useval = np.median(weights_ret)
+    weights_ret[weights_ret>=wmax]=useval
+
+    return(weights_ret,wmax)
+
+def crop_weight_nperc(weightarr,crop_weight_perc):
+    '''
+    crop large weights: crop_weight_perc fraction of the total
+    '''
+
+    # checks:
+    assert isinstance(weightarr,np.ndarray), print('Error: crop_weight_nperc expects ndarray, got:',type(weightarr))
+
+    # copy to prevent overwriting original weights
+    weights_ret=weightarr.copy()
+
+    if (len(weights_ret[weights_ret < 0])>0):
+        print('crop_weight_nperc: negative weights obtained, enforcing +ve weigts first.')
+        ensure_positive_weight(weights_ret)
+        
+    keep_weight_frac=(1-0.01*crop_weight_perc)
+    print('\nCropping largest ',crop_weight_perc,'% of all weights\n')
+
+    # find max allowed weight:
+    sort_weights=weights_ret.copy()
+    max_elemindex=keep_weight_frac*len(weights_ret)
+    if (len(sort_weights)<=max_elemindex):
+        return(weights_ret,-1)
+
+    weightmax=weights_ret[int(max_elemindex)]
+    # replace weights >= max allowed weight with median
+    useval = np.median(weights_ret)
+    weights_ret[weights_ret>=weightmax]=useval
+    return(weights_ret,weightmax)
 
 
+def force_nonzero(weightarr,epsilon_div):
+    '''
+    expects +ve weight ndarray
+    '''
+    # checks:
+    assert isinstance(weightarr,np.ndarray), print('Error: force_nonzero expects ndarray, got:',type(weightarr))
+    if (len(weightarr[weightarr < 0])>0):
+        print('Force_nonzero: negative weights obtained, enforcing +ve weigts first.')
+        ensure_positive_weight(weightarr)
+
+    # copy to prevent overwriting original weights
+    weights_ret=weightarr.copy()       
+
+    n_zero_weight=len(weights_ret[weights_ret < epsilon_div])
+    if (n_zero_weight>0):
+        useval = np.median(weights_ret)
+        print("\nZero-weight division: replace evens in case of division by <",epsilon_div)
+        print("....... replacing:",100.*n_zero_weight/len(weights_ret),'% events with:',useval,'\n')
+        weights_ret[weights_ret < epsilon_div]=useval
+    return(weights_ret)
+
+def ensure_positive_weight(weightarr):
+
+    # copy to prevent overwriting original weights
+    weights_ret=weightarr.copy()
+
+    count_replaced=0
+    useval=np.median(np.abs(weights_ret))
+    for i in (0,len(weights_ret)-1):
+        if (weights_ret[i]<0):
+            weights_ret[i]=useval
+            count_replaced+=1
+    if (count_replaced>0):
+        print('\nReplaced ',100.*count_replaced/len(weights_ret),'% -ve weights with',useval,'\n')
+    return(weights_ret)
