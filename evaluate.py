@@ -29,6 +29,7 @@ def eval_and_store(
 
     draw_weights(weights,crop_weight_sigma=crop_weight_sigma,extra_text=extra_text)
 
+
     if (crop_weight_sigma>0):
         # crop weights greater than N sigma from abs average:
         absweights=np.abs(weights)
@@ -37,11 +38,9 @@ def eval_and_store(
               100.*(len(weights[weights>wmax])+len(weights[weights<-1.*wmax]))/len(weights),"%")
         weights[weights>wmax]=1
         weights[weights<-1.*wmax]=1
-
+        
     weights = weights / weights.sum() * len(X0)
-    exit(0)
 
-    #print('Indices of any events with NAN weights? ', np.where(np.isnan(weights)))
  
     # ROC Curve: this is calculate with a separate ML algorithm
     # we need to scale inputs: scale together, than split them back
@@ -79,6 +78,10 @@ out_csv_dir="out_csv"
 # stamp for plots when using ATLAS samples
 extra_text="ATLAS Simulation, Work in Progress"
 
+# prevent 0-division:
+# set this to very low, as we'll also filter large weights 
+zero_w_bound = np.finfo(float).eps
+
 # crop (=set to 1) outlier weights more than N sigma from average
 crop_weight_sigma = 10
 
@@ -112,6 +115,14 @@ for i in evaluate:
     # s_hat = p1 / (p0+p1), where 0 corresponds to X0
     # r_hat = p0/p1
     # weight will be assigned to X0, hence has to correspond to p1/p0
+
+    # how should we prevent 0-division?
+    n_zero_weight=len(r_hat[r_hat < zero_w_bound])
+    if (n_zero_weight>0):
+        print("Filtering zero-weight events:",100.*n_zero_weight/len(r_hat),'%')
+        r_hat[r_hat < zero_w_bound]=1.
+
+    # now evaluate the weight to apply to X0
     w = 1./r_hat
     
     # check whether there was an associated event number path:
