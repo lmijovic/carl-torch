@@ -91,11 +91,12 @@ def crop_weight_nperc(weightarr,crop_weight_perc):
 
     # find max allowed weight:
     sort_weights=weights_ret.copy()
-    max_elemindex=keep_weight_frac*len(weights_ret)
+    sort_weights.sort()
+    max_elemindex=keep_weight_frac*len(sort_weights)
     if (len(sort_weights)<=max_elemindex):
         return(weights_ret,-1)
 
-    weightmax=weights_ret[int(max_elemindex)]
+    weightmax=sort_weights[int(max_elemindex)]
     # replace weights >= max allowed weight with median
     useval = np.median(weights_ret)
     weights_ret[weights_ret>=weightmax]=useval

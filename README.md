@@ -102,6 +102,13 @@ ln -s your_directory/yourcsv1.csv to_weight.csv
 ```
 And run as in usual (train.py / evaluate.py / calibrate.py / predict.py )
 
+## Unit Tests 
+
+a small set of utils has unittest-based tests, run from top directory as:
+```
+python -m unittest tests/utils/test_weight_manips.py
+
+```
 
 # Original author's doc
 

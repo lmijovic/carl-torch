@@ -25,10 +25,10 @@ class TestWeights(unittest.TestCase):
                                        np.array(target)))
 
     def test_crop_weight_nperc(self):
-        weights=np.array([0.,1.,2.,3.,4.,5.,20000.])
+        weights=np.array([20000.,0.,1.,2.,4.,5.,3.])
         useval=np.median(weights)
         weights_ret,weightmax = crop_weight_nperc(weights,10.)
-        target=[0.,1.,2.,3.,4.,5.,useval]
+        target=[useval,0.,1.,2.,4.,5.,3.]
         self.assertTrue(np.array_equal(weights_ret,
                                        np.array(target)))
         self.assertEqual(weightmax,20000.)

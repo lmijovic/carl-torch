@@ -36,6 +36,7 @@ def eval_and_store(
     maxweight=-1
     if (crop_weight_perc>0):
         weights,_maxweight=crop_weight_nperc(weights,crop_weight_perc)
+        print('weight check:',maxweight,_maxweight)
         maxweight=max(maxweight,_maxweight)
 
     if (crop_weight_sigma>0):
@@ -45,7 +46,6 @@ def eval_and_store(
     draw_weights(noncropped_weights,maxweight,extra_text=extra_text)
 
     weights = weights / weights.sum() * len(X0)
-    exit(0)
  
     # ROC Curve: this is calculate with a separate ML algorithm
     # we need to scale inputs: scale together, than split them back
@@ -88,10 +88,10 @@ extra_text="ATLAS Simulation, Work in Progress"
 zero_w_bound = np.finfo(float).eps
 
 # crop outlier weights more than N sigma from average
-crop_weight_sigma = 5
+crop_weight_sigma = -1
 
 # alternatively: crop X% of largest weight
-crop_weight_perc = -1.
+crop_weight_perc = 1.
 
 #-----------------------------------------------------------------------------
 

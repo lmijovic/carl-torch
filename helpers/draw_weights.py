@@ -28,9 +28,9 @@ def draw_weights(carl_weights=[],maxweight=-1,extra_text=""):
     if (maxweight>0):
         xsig=maxweight
         # nominal display
-        #crop_str='cut'
+        crop_str='cut'
         # manually set nice display
-        crop_str='$\\frac{|w-\mathrm{mean}|}{\sigma}>$ 5'
+        #crop_str='$\\frac{|w-\mathrm{mean}|}{\sigma}>$ 5'
     # linear scale 
     plt.figure()
     plt.hist(abs(carl_weights), bins=(100),
@@ -73,8 +73,9 @@ def draw_weights(carl_weights=[],maxweight=-1,extra_text=""):
         xmin, xmax = axes.get_xlim()
         xspan=xmax-xmin
         xpos=max(xsig-0.1*xspan,xmin)
-        plt.text(np.log10(xpos), 0.8*yspan, crop_str,
-                 rotation='horizontal', verticalalignment = 'top' , horizontalalignment = 'right' )
+        if (xpos>0):
+            plt.text(np.log10(xpos), 0.8*yspan, crop_str,
+                     rotation='horizontal', verticalalignment = 'top' , horizontalalignment = 'right' )
 
     if (extra_text!=""):
         plt.text(xmax, ymin+1.05*yspan, extra_text, horizontalalignment = 'right',fontsize=12)
