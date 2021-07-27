@@ -2,6 +2,10 @@ from variables import get_variable_names
 from utils_edb import preprocess_input_file
 from ml import Loader_edb
 from ml import RatioEstimator
+from utils_edb import crop_weight_nsig
+from utils_edb import crop_weight_nperc
+from utils_edb import force_nonzero
+from utils_edb import ensure_positive_weight
 
 import argparse
 import pandas as pd
@@ -20,6 +24,17 @@ model_out_path="model"
 
 # directory to which events+carl weights should be written in .csv:
 out_csv_dir="out_csv"
+
+# prevent 0-division:
+# set this to very low, as we'll also filter large weights 
+zero_w_bound = np.finfo(float).eps
+
+# crop outlier weights more than N sigma from average
+crop_weight_sigma = 5.
+
+# alternatively: crop X% of largest weight
+crop_weight_perc = -1
+
 #-----------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser(description='Predict carl weights')
@@ -70,9 +85,22 @@ if (DEBUG):
     print('Loading model from:',model_out_path)
 carl.load(model_out_path+'/carl/')
 r_hat, s_hat = carl.evaluate(X0)
+# prevent -ve weights (should be rounding only):
+r_hat = ensure_positive_weight(r_hat)
+
+# prevent 0-division
+r_hat = force_nonzero(r_hat,zero_w_bound)
+
 weights = 1./r_hat
 weights = weights / weights.sum() * len(X0)
+maxweight=-1
+if (crop_weight_perc>0):
+    weights,_maxweight=crop_weight_nperc(weights,crop_weight_perc)
+    maxweight=max(maxweight,_maxweight)
 
+if (crop_weight_sigma>0):
+    weights,_maxweight=crop_weight_nsig(weights,crop_weight_sigma)
+    maxweight=max(maxweight,_maxweight)
 
 # write out prediction results:
 if (out_csv_dir != ""):

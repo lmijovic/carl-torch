@@ -36,7 +36,6 @@ def eval_and_store(
     maxweight=-1
     if (crop_weight_perc>0):
         weights,_maxweight=crop_weight_nperc(weights,crop_weight_perc)
-        print('weight check:',maxweight,_maxweight)
         maxweight=max(maxweight,_maxweight)
 
     if (crop_weight_sigma>0):
@@ -88,10 +87,10 @@ extra_text="ATLAS Simulation, Work in Progress"
 zero_w_bound = np.finfo(float).eps
 
 # crop outlier weights more than N sigma from average
-crop_weight_sigma = -1
+crop_weight_sigma = 5.
 
 # alternatively: crop X% of largest weight
-crop_weight_perc = 1.
+crop_weight_perc = -1.
 
 #-----------------------------------------------------------------------------
 
@@ -127,7 +126,7 @@ for i in evaluate:
     # prevent -ve weights (should be rounding only):
     r_hat = ensure_positive_weight(r_hat)
 
-    # prevent 0-division?
+    # prevent 0-division
     r_hat = force_nonzero(r_hat,zero_w_bound)
 
     # now evaluate the weight to apply to X0

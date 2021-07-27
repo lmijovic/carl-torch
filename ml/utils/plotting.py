@@ -91,6 +91,8 @@ def resampled_discriminator_and_roc(original, target, weights):
     return fpr,tpr,roc_auc
  
 def draw_ROC(X0, X1, weights, label, legend, do, n, plot = True):
+
+    plt.rcParams.update({'font.size': 10})
     plt.figure(figsize=(4, 3))
     no_weights_scaled = np.ones(X0.shape[0])/np.ones(X0.shape[0]).sum() * len(X1)
     fpr_t,tpr_t,roc_auc_t = resampled_discriminator_and_roc(X0, X1, no_weights_scaled)
