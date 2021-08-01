@@ -55,8 +55,8 @@ parser.add_argument('--crop_weight_perc', required=False, help='crop largest cro
 args = parser.parse_args()
 infile=args.infile
 to_weight_file=args.to_weight_file
-crop_weight_sigma=args.crop_weight_sigma
-crop_weight_perc=args.crop_weight_perc
+crop_weight_sigma=float(args.crop_weight_sigma)
+crop_weight_perc=float(args.crop_weight_perc)
 
 #-----------------------------------------------------------------------------
 
@@ -143,35 +143,49 @@ if (do_ks):
 
     # load 
     data_x1=pd.read_csv(to_weight_file,skiprows=0, header=None,names=col_names)
-    ksstat_now=0
-    ksstat_w=0
-
 
     ks_weights=np.full((0,len(col_names)), 1)
     if (do_weighted_ks_tH):
+        # let's use a sub-set of observables,
+        # and give larger weight to FS ones and the ones used by Tom's NN 
         col_names=["t_pt","t_eta","H_pt","H_eta","b_pt","b_eta",
                    "dEta_t_H","theta_t_H","m_tH","theta_tH_b","dR_tH_b","whatever"]
         ks_weights=np.full((1,len(col_names)), 2)
-        print(type(ks_weights),ks_weights.shape)
         ks_weights[0,0]=1.
         ks_weights[0,1]=1.
         ks_weights[0,2]=1.
         ks_weights[0,3]=1.
 
-    index=0
-    for name in col_names:
-        # trivial weights:
-        weights1=np.full(data_x1[name].shape[0], 1)
-        weights0=np.full(data_x0[name].shape[0], 1)
-        ksstat,ksprob=ks_w2(data_x1[name],data_x0[name],weights1,weights0,alternative='two-sided')
-        ksstat_now+=ksstat*ks_weights[0,index]
-        # actual: 
-        ksstat,ksprob=ks_w2(data_x1[name],data_x0[name],weights1,weights,alternative='two-sided')
-        ksstat_w+=ksstat*ks_weights[0,index]
-        index+=1
+    # do a couple of samplings of the reference data-set, to avoid picking KS stat. fluctuations
+    n_x1_splits=5
+    sampling_frac=0.5
+    imprs=[1]*n_x1_splits
+    for x1_split in range(0,n_x1_splits):
+        data_x1_split=data_x1.sample(frac=sampling_frac, random_state=x1_split).reset_index(drop=True)
+        
+        ksstat_now=0
+        ksstat_w=0
+        index=0
+        for name in col_names:
+            # trivial weights:
+            weights1=np.full(data_x1_split[name].shape[0], 1)
+            weights0=np.full(data_x0[name].shape[0], 1)
+            ksstat,ksprob=ks_w2(data_x1_split[name],data_x0[name],weights1,weights0,alternative='two-sided')
+            ksstat_now+=ksstat*ks_weights[0,index]
+            # actual: 
+            ksstat,ksprob=ks_w2(data_x1_split[name],data_x0[name],weights1,weights,alternative='two-sided')
+            ksstat_w+=ksstat*ks_weights[0,index]
+            index+=1
+            
+            # evaluate improvement:
+            impr=(ksstat_now-ksstat_w)/(ksstat_w+ksstat_now)
 
-    # evaluate improvement:
-    impr=(ksstat_now-ksstat_w)/(ksstat_w+ksstat_now)
-    print("Improvement is",impr)
+        imprs[x1_split]=impr
 
+    # median or last:
+    elem=min(int(n_x1_splits/2.)-1,n_x1_splits-1)
+    imprs.sort
+    imprs_sigma=0.5*(imprs[n_x1_splits-1]+imprs[0]-2.*imprs[elem])
+    print("Relative improvement is KS statistic is : ", imprs[elem], "+-", imprs_sigma)
+    print("Weight spread is:",np.log10(np.amax(weights))-np.log10(np.amin(weights)))
 exit(0)
