@@ -138,3 +138,33 @@ def ensure_positive_weight(weightarr):
     if (count_replaced>0):
         print('\nReplaced ',100.*count_replaced/len(weights_ret),'% -ve weights with',useval,'\n')
     return(weights_ret)
+
+# weighted KS test:
+# https://stackoverflow.com/questions/40044375/
+def ks_w2(data1, data2, wei1, wei2, alternative='two-sided'):
+    ix1 = np.argsort(data1)
+    ix2 = np.argsort(data2)
+    data1 = data1[ix1]
+    data2 = data2[ix2]
+    wei1 = wei1[ix1]
+    wei2 = wei2[ix2]
+    data = np.concatenate([data1, data2])
+    cwei1 = np.hstack([0, np.cumsum(wei1)/sum(wei1)])
+    cwei2 = np.hstack([0, np.cumsum(wei2)/sum(wei2)])
+    cdf1we = cwei1[np.searchsorted(data1, data, side='right')]
+    cdf2we = cwei2[np.searchsorted(data2, data, side='right')]
+    d = np.max(np.abs(cdf1we - cdf2we))
+    # calculate p-value
+    n1 = data1.shape[0]
+    n2 = data2.shape[0]
+    m, n = sorted([float(n1), float(n2)], reverse=True)
+    en = m * n / (m + n)
+    if alternative == 'two-sided':
+        prob = distributions.kstwo.sf(d, np.round(en))
+    else:
+        z = np.sqrt(en) * d
+        # Use Hodges' suggested approximation Eqn 5.3
+        # Requires m to be the larger of (n1, n2)
+        expt = -2 * z**2 - 2 * z * (m + 2*n)/np.sqrt(m*n*(m+n))/3.0
+        prob = np.exp(expt)
+    return d, prob

@@ -1,0 +1,7 @@
+Run as: 
+
+python generate_inputs.py
+
+generates pseudo-data over which you can run the full carl chain. The 
+variables_test.py is the variables column name function , which should be linked to variables.py
+
