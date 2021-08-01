@@ -76,7 +76,7 @@ estimator = RatioEstimator(
 
 
 # pop event number, as this should not be used for training
-estimator.train(
+train_loss,val_loss=estimator.train(
     method='carl',
     batch_size = 1024,
     n_epochs = 200,
@@ -85,9 +85,18 @@ estimator.train(
     x0=x0, 
     x1=x1,
     scale_inputs = True,
-#    early_stopping = True,
-#    early_stopping_patience = 10
+    #early_stopping = True,
+    #early_stopping_patience = 10
 )
+
+
+loss_out_path=model_out_path+"/loss"
+directory = os.path.dirname(loss_out_path)
+if not os.path.exists(loss_out_path):
+    os.makedirs(loss_out_path)
+
+np.savetxt(loss_out_path+"/train_loss.csv", train_loss, delimiter=",")
+np.savetxt(loss_out_path+"/val_loss.csv", val_loss, delimiter=",")
 
 #
 model_out_path = model_out_path +'/carl/'
