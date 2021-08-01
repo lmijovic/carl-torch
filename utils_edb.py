@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+from scipy.stats import distributions
+
 # carl torch framework has a bunch of requirements on inputs;
 # aim of this module is to ensure these requirements are satisfied 
 
@@ -142,6 +144,7 @@ def ensure_positive_weight(weightarr):
 # weighted KS test:
 # https://stackoverflow.com/questions/40044375/
 def ks_w2(data1, data2, wei1, wei2, alternative='two-sided'):
+    # indices thay would sort the array 
     ix1 = np.argsort(data1)
     ix2 = np.argsort(data2)
     data1 = data1[ix1]
