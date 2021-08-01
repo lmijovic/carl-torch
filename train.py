@@ -1,3 +1,17 @@
+
+
+from ml import RatioEstimator
+# modified loader for generic dataframe
+from ml import Loader_edb
+
+#
+from variables import get_variable_names
+from utils_edb import preprocess_inputs
+
+# support for patch parsing in hyperpara optization
+import json
+import argparse
+
 import os
 import sys
 import logging
@@ -7,14 +21,6 @@ import tarfile
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-
-from ml import RatioEstimator
-# modified loader for generic dataframe
-from ml import Loader_edb
-
-#
-from variables import get_variable_names
-from utils_edb import preprocess_inputs
 
 #-----------------------------------------------------------------------------
 # main 
@@ -31,6 +37,31 @@ model_out_path="model"
 # try to use same seed in all steps for reproducibility
 random_seed=42
 #-----------------------------------------------------------------------------
+
+parser = argparse.ArgumentParser(description='Predict carl weights')
+parser.add_argument('--patch', required=False, help='hyperparameters patch in .json format', default='')
+
+# default hyperparams
+# hidden layers nodes 
+n_hidden=(6,6,6)
+n_epochs=200
+
+args = parser.parse_args()
+if (args.patch!=""):
+    nodevals=[]
+    with open(args.patch) as f:
+        patch_hyperparas=json.load(f) 
+        print(patch_hyperparas)
+        print(type(patch_hyperparas))
+        for k,v in patch_hyperparas.items():
+            if ('epochs'==k):
+                n_epochs=int(v)
+            elif ('nodes'==k):
+                for nv in v.split(","):
+                    nodevals.append(int(nv))
+                n_hidden=tuple(nodevals)
+            else:
+                print("Warning, the patch contains unknown key",k)
 
 if os.path.exists(data_out_path + '/X_train.npy'):
     x=data_out_path+'/X_train.npy'
@@ -70,7 +101,7 @@ else:
 
 # now the carl-torch part 
 estimator = RatioEstimator(
-    n_hidden=(10,10,10),
+    n_hidden=n_hidden,
     activation="relu"
 )
 
@@ -79,7 +110,7 @@ estimator = RatioEstimator(
 train_loss,val_loss=estimator.train(
     method='carl',
     batch_size = 1024,
-    n_epochs = 200,
+    n_epochs = n_epochs,
     x=x,
     y=y,
     x0=x0, 

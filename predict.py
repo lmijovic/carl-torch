@@ -145,24 +145,26 @@ if (do_ks):
     data_x1=pd.read_csv(to_weight_file,skiprows=0, header=None,names=col_names)
 
     ks_weights=np.full((0,len(col_names)), 1)
+
     if (do_weighted_ks_tH):
         # let's use a sub-set of observables,
         # and give larger weight to FS ones and the ones used by Tom's NN 
-        col_names=["t_pt","t_eta","H_pt","H_eta","b_pt","b_eta",
+        col_names_filt=["t_pt","t_eta","H_pt","H_eta","b_pt","b_eta",
                    "dEta_t_H","theta_t_H","m_tH","theta_tH_b","dR_tH_b","whatever"]
         ks_weights=np.full((1,len(col_names)), 2)
         ks_weights[0,0]=1.
         ks_weights[0,1]=1.
         ks_weights[0,2]=1.
         ks_weights[0,3]=1.
-
+ 
     # do a couple of samplings of the reference data-set, to avoid picking KS stat. fluctuations
     n_x1_splits=5
     sampling_frac=0.5
     imprs=[1]*n_x1_splits
+
     for x1_split in range(0,n_x1_splits):
         data_x1_split=data_x1.sample(frac=sampling_frac, random_state=x1_split).reset_index(drop=True)
-        
+
         ksstat_now=0
         ksstat_w=0
         index=0
