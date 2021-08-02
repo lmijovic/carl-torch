@@ -60,7 +60,7 @@ ln -s tests/inputs/old.csv ref.csv
 ln -s new/inputs/old.csv  to_weight.csv
 
 # set variables to use 
-ln -s tests/variables_test.py variables.py
+ln -s tests/inputs/variables_test.py variables.py
 
 # train
 python train.py 
@@ -69,11 +69,12 @@ python train.py
 python evaluate.py
 # yields ROC curve plots in plots/ , and output .csv samples with carl weights in out_csv 
 
-# predict the weights for all events in ref.csv file, & store them to disk for any further processing
+# predict the weights for all events in ref.csv file, & store them to disk for any further processing. 
 python predict.py 
 
 # calibrate the weights and write-out calib. weighted samples
-python calibrate.py
+# this does not work, do not use! 
+#python calibrate.py 
 # yields ROC curve plots in plots/ , and output .csv samples with calibrated carl weights in out_csv
 
 ```
@@ -107,8 +108,24 @@ And run as in usual (train.py / evaluate.py / calibrate.py / predict.py )
 a small set of utils has unittest-based tests, run from top directory as:
 ```
 python -m unittest tests/utils/test_weight_manips.py
+etc.
 
 ```
+## Hyperpara Optimization
+
+The training parameters can be overwritten from a patch using: 
+```
+python train.py --patch patches/patch_tH_best.json 
+```
+
+The cut on outlier weights in predict.py can be optimized as: 
+```
+# cut out 1% largest weights instead of  
+python predict.py --patch patches/patch_tH_best.json 
+```
+
+The predict.py optionally also evalautes improvement in the agreement of the target and the weighted distributions, compared to no weighting, using Kolmogorov-Smirnov test, which is our FOM in selecting the best hyper-parameters and weight cut. 
+
 
 # Original author's doc
 
