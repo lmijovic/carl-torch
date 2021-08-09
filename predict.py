@@ -32,12 +32,14 @@ model_out_path="model"
 
 # directory to which events+carl weights should be written in .csv:
 # if empty, no predictions will be written out 
-#out_csv_dir="out_csv"
-out_csv_dir=""
+#out_csv_dir=""
+# todo: you can dispable printout for hyperpara opti
+out_csv_dir="out_csv/"
 
 #  KS test can be scheduled to quantify similarity of weighted vs baseline
+# TODO: switch these on for hyperpara opti
 do_ks = True
-do_weighted_ks_tH = True
+do_weighted_ks_tH = False
 
 # prevent 0-division:
 # set this to very low, as we'll also filter large weights 
@@ -144,12 +146,12 @@ if (do_ks):
     # load 
     data_x1=pd.read_csv(to_weight_file,skiprows=0, header=None,names=col_names)
 
-    ks_weights=np.full((0,len(col_names)), 1)
+    ks_weights=np.full((1,len(col_names)), 1)
 
     if (do_weighted_ks_tH):
         # let's use a sub-set of observables,
         # and give larger weight to FS ones and the ones used by Tom's NN 
-        col_names_filt=["t_pt","t_eta","H_pt","H_eta","b_pt","b_eta",
+        col_names=["t_pt","t_eta","H_pt","H_eta","b_pt","b_eta",
                    "dEta_t_H","theta_t_H","m_tH","theta_tH_b","dR_tH_b","whatever"]
         ks_weights=np.full((1,len(col_names)), 2)
         ks_weights[0,0]=1.
@@ -162,20 +164,31 @@ if (do_ks):
     sampling_frac=0.5
     imprs=[1]*n_x1_splits
 
+    # calculate KS test in a couple of random data splits
     for x1_split in range(0,n_x1_splits):
+        if (DEBUG):
+            print("Evaluaing KS in split ", x1_split+1 , " / ", n_x1_splits)
         data_x1_split=data_x1.sample(frac=sampling_frac, random_state=x1_split).reset_index(drop=True)
 
         ksstat_now=0
         ksstat_w=0
         index=0
         for name in col_names:
-            # trivial weights:
+            if (name=="eventnumber"):
+                continue
+            # first KS for unweighted sample / trivial weights set to 1 
             weights1=np.full(data_x1_split[name].shape[0], 1)
             weights0=np.full(data_x0[name].shape[0], 1)
             ksstat,ksprob=ks_w2(data_x1_split[name],data_x0[name],weights1,weights0,alternative='two-sided')
             ksstat_now+=ksstat*ks_weights[0,index]
-            # actual: 
+            ksstat_var_now=ksstat
+            if (DEBUG):
+                print("..... ", name, " : unweighted ksstat,ksprob",ksstat,ksprob)
+            # KS with actual weights calc-ed in CARL, as stored "weights" 
             ksstat,ksprob=ks_w2(data_x1_split[name],data_x0[name],weights1,weights,alternative='two-sided')
+            if (DEBUG):
+                print("..... ", name, " : weighted ksstat,ksprob",ksstat,ksprob)
+                print(".....  this var's improvement:", (ksstat_var_now-ksstat)/(ksstat_var_now+ksstat))
             ksstat_w+=ksstat*ks_weights[0,index]
             index+=1
             
