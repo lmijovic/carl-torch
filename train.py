@@ -11,6 +11,7 @@ from utils_edb import preprocess_inputs
 # support for patch parsing in hyperpara optization
 import json
 import argparse
+from shutil import copy2
 
 import os
 import sys
@@ -36,6 +37,7 @@ model_out_path="model"
 
 # try to use same seed in all steps for reproducibility
 random_seed=42
+
 #-----------------------------------------------------------------------------
 
 parser = argparse.ArgumentParser(description='Predict carl weights')
@@ -43,7 +45,7 @@ parser.add_argument('--patch', required=False, help='hyperparameters patch in .j
 
 # default hyperparams
 # hidden layers nodes 
-n_hidden=(6,6,6)
+n_hidden=(9,9,9)
 n_epochs=200
 
 args = parser.parse_args()
@@ -51,8 +53,7 @@ if (args.patch!=""):
     nodevals=[]
     with open(args.patch) as f:
         patch_hyperparas=json.load(f) 
-        print(patch_hyperparas)
-        print(type(patch_hyperparas))
+        print('applying hyperparameter patch: ', patch_hyperparas)
         for k,v in patch_hyperparas.items():
             if ('epochs'==k):
                 n_epochs=int(v)
@@ -94,7 +95,7 @@ else:
         folder = data_out_path,
         randomize = False,
         random_seed = random_seed,
-        val_frac = 0.5,
+        val_frac = 0.25,
         filter_outliers = True
     )
     print("Loaded new datasets ")
@@ -109,7 +110,7 @@ estimator = RatioEstimator(
 # pop event number, as this should not be used for training
 train_loss,val_loss=estimator.train(
     method='carl',
-    batch_size = 1024,
+    batch_size = 4096,
     n_epochs = n_epochs,
     x=x,
     y=y,
@@ -134,3 +135,9 @@ model_out_path = model_out_path +'/carl/'
 print('all done, saving model to:', model_out_path)
 estimator.save(model_out_path, x=x, export_model = True)
 
+# also store patch, if it was provided:
+if (args.patch!=""):
+    patch_out_path=model_out_path+"/patch/"
+    if not os.path.exists(patch_out_path):
+        os.makedirs(patch_out_path)
+    copy2(args.patch,patch_out_path)
