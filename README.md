@@ -8,7 +8,7 @@ Fork of CARL-TORCH adapting it for the studies of the Edinburgh group. Please se
 
 ```
 
-conda create -n myenv ctorch python=3.7
+conda create -n ctorch python=3.7
 
 # requirements
  conda install numpy
