@@ -8,13 +8,12 @@ Fork of CARL-TORCH adapting it for the studies of the Edinburgh group. Please se
 
 ```
 
-conda create -n ctorch python=3.7
+conda create -n ctorch python=3.9
 
 # requirements
  conda install numpy
  conda install scipy
  conda install scikit-learn
- conda install torch
  conda install -c conda-forge uproot
  conda install matplotlib
  conda install pandas
@@ -47,7 +46,7 @@ rm -fr data/ model/ plots/
 
 # generate some test inputs: 
 cd tests/inputs/
-pyton generate_inputs.py
+python generate_inputs.py
 
 # back to carl-torch directory: 
 cd -
