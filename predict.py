@@ -179,6 +179,7 @@ if (do_ks):
             # first KS for unweighted sample / trivial weights set to 1 
             weights1=np.full(data_x1_split[name].shape[0], 1)
             weights0=np.full(data_x0[name].shape[0], 1)
+            print('unweighted',name)
             ksstat,ksprob=ks_w2(data_x1_split[name],data_x0[name],weights1,weights0,alternative='two-sided')
             ksstat_now+=ksstat*ks_weights[0,index]
             ksstat_var_now=ksstat

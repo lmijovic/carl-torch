@@ -152,7 +152,7 @@ class Loader_edb():
         
         # Filter out evens in the tails, but ignore eventnumber in filter:
         if filter_outliers:
-            factor = 5
+            factor = 8
 
             nev_x0 = x0.shape[0]
             for column in x0:

@@ -6,31 +6,37 @@ Fork of CARL-TORCH adapting it for the studies of the Edinburgh group. Please se
 
 ## Installation notes
 
+To get the exact packages with which I tested this: 
+
+```
+git clone https://github.com/lmijovic/carl-torch.git
+cd carl-torch
+conda create --name <env> --file requirements.txt
 ```
 
-conda create -n ctorch python=3.9
+The code should have no strict / exact requirements, so to set up env, I did: 
+
+```
+
+conda create -n ctorch python=3.7
 
 # requirements
  conda install numpy
  conda install scipy
  conda install scikit-learn
- conda install -c conda-forge uproot
  conda install matplotlib
  conda install pandas
  conda install seaborn
- conda install -c conda-forge uproot4
- conda install -c conda-forge onnx
  pip install --upgrade pip
  pip install torch
  pip install onnxruntime
-
-
-
-# to use: 
-git clone https://github.com/lmijovic/carl-torch.git
+ pip install onnx
+ pip install uproot 
+ pip install uproot4 
 
 
 ```
+
 ## Conventions: 
    * Inputs: .csv format with no header
    * Variable names: should be passed in file variables.py
@@ -56,7 +62,7 @@ cd -
 # this file will eventually get weights, such that it can be rewght-ed to new.csv
 ln -s tests/inputs/old.csv ref.csv
 # we want to weight to this file: 
-ln -s new/inputs/old.csv  to_weight.csv
+ln -s tests/inputs/new.csv  to_weight.csv
 
 # set variables to use 
 ln -s tests/inputs/variables_test.py variables.py
@@ -68,7 +74,7 @@ python train.py
 python evaluate.py
 # yields ROC curve plots in plots/ , and output .csv samples with carl weights in out_csv 
 
-# predict the weights for all events in ref.csv file, & store them to disk for any further processing. 
+# predict the weights for all events in ref.csv file, & store them to out_csv/ for any further processing. 
 python predict.py 
 
 # calibrate the weights and write-out calib. weighted samples
@@ -102,6 +108,7 @@ ln -s your_directory/yourcsv1.csv to_weight.csv
 ```
 And run as in usual (train.py / evaluate.py / calibrate.py / predict.py )
 
+
 ## Unit Tests 
 
 a small set of utils has unittest-based tests, run from top directory as:
@@ -114,14 +121,18 @@ etc.
 
 The training parameters can be overwritten from a patch using: 
 ```
-python train.py --patch patches/patch_tH_best.json 
+python train.py --patch patches/patch_best.json 
 ```
 
-The cut on outlier weights in predict.py can be optimized as: 
+with eg
 ```
-# cut out 1% largest weights instead of  
-python predict.py --patch patches/patch_tH_best.json 
+cat patches/patch_best.json 
+{
+    "nodes": "16,8,4",
+    "epochs": "200"
+}
 ```
+
 
 The predict.py optionally also evalautes improvement in the agreement of the target and the weighted distributions, compared to no weighting, using Kolmogorov-Smirnov test, which is our FOM in selecting the best hyper-parameters and weight cut. 
 

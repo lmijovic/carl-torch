@@ -95,7 +95,7 @@ else:
         folder = data_out_path,
         randomize = False,
         random_seed = random_seed,
-        val_frac = 0.25,
+        val_frac = 0.2,
         filter_outliers = True
     )
     print("Loaded new datasets ")
@@ -110,13 +110,15 @@ estimator = RatioEstimator(
 # pop event number, as this should not be used for training
 train_loss,val_loss=estimator.train(
     method='carl',
-    batch_size = 4096,
+    batch_size = 2048,
     n_epochs = n_epochs,
     x=x,
     y=y,
     x0=x0, 
     x1=x1,
     scale_inputs = True,
+    initial_lr=0.001,
+    final_lr=0.0001,
     #early_stopping = True,
     #early_stopping_patience = 10
 )

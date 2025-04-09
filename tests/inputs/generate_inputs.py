@@ -34,8 +34,8 @@ write_to_csv(s,"old.csv")
 start_en+=(start_en+nevents)*10
 nevents=100000
 # new sample, to which we reweight:
-s1 = make_sample(mu=-0.5,sigma=0.3,nevents=nevents,start_eventnumber=start_en)
-s2 = make_sample(mu=0.5,sigma=0.3,nevents=nevents,start_eventnumber=start_en+nevents+1)
+s1 = make_sample(mu=0.5,sigma=0.3,nevents=nevents,start_eventnumber=start_en)
+s2 = make_sample(mu=0.5,sigma=0.35,nevents=nevents,start_eventnumber=start_en+nevents+1)
 s=np.concatenate((s1,s2), axis=0)
 # write file with distribution to which we want to reweight
 write_to_csv(s,"new.csv")
