@@ -103,9 +103,10 @@ def draw_ROC(X0, X1, weights, label, legend, do, n, plot = True):
     plt.xlim([0.0, 1.0]) 
     plt.ylim([0.0, 1.05])
     plt.title('')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate', loc='right')
+    plt.ylabel('True Positive Rate', loc='top')
     plt.legend(loc="lower right", title = label)
+    plt.legend(frameon=False)
     plt.tight_layout()
     if plot:
         plt.savefig('plots/roc_nominalVs%s_%s_%s_%s.png'%(legend,do,label, n)) 
