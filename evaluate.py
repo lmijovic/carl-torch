@@ -80,7 +80,8 @@ model_out_path="model"
 out_csv_dir="out_csv"
 
 # stamp for plots when using ATLAS samples
-extra_text="ATLAS Simulation, Work in Progress"
+#extra_text="ATLAS Simulation, Work in Progress"
+extra_text=""
 
 # prevent 0-division:
 # set this to very low, as we'll also filter large weights 
